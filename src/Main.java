@@ -1,5 +1,8 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Formatter;
+import java.util.Locale;
 import java.util.Scanner;
 
 public class Main {
@@ -14,7 +17,7 @@ public class Main {
 		}
 		
 		Scanner sc = new Scanner(System.in);
-		
+				
 		ArrayList<Substring> set = new ArrayList<Substring>();
 		
 		while(sc.hasNextLine()) {
@@ -32,11 +35,11 @@ public class Main {
 					continue;
 				}
 				for(int i = 0; i < word.length()-SUBSTRING_LENGTH-1; i++) {
-					Substring substring = new Substring(word.substring(i, i+SUBSTRING_LENGTH), input);
+					Substring substring = new Substring(word.substring(i, i+SUBSTRING_LENGTH), new Line(lineNumber, word, i));
 					if(!set.contains(substring)) {
 						set.add(substring);
 					} else {
-						set.get(set.indexOf(substring)).add(input);
+						set.get(set.indexOf(substring)).add(substring.lines.get(0));
 					}
 				}
 			}
@@ -49,8 +52,23 @@ public class Main {
 				continue;
 			System.out.println(s.sub + " (" + s.lines.size() + " occurences)");
 			System.out.println();
-			for(String line : s.lines) {
-				System.out.println(line);
+		
+			int maxOffset = 0;
+			int maxLineLength = 0;
+			for(Line line : s.lines) {
+				if(line.offset > maxOffset) {
+					maxOffset = line.offset;
+				}
+				if(line.lineNumber.length() > maxLineLength) {
+					maxLineLength = line.lineNumber.length();
+				}
+			}
+			
+			for(Line line : s.lines) {
+				//pad with spaces
+				char[] spaces = new char[maxLineLength + maxOffset - line.lineNumber.length() - line.offset];
+				Arrays.fill(spaces, ' ');				
+				System.out.println("<" + line.lineNumber + "> " + new String(spaces) + line.word);
 			}
 			System.out.println();
 		}
@@ -59,15 +77,15 @@ public class Main {
 
 class Substring implements Comparable{
 	public String sub;
-	public ArrayList<String> lines;
+	public ArrayList<Line> lines;
 	
-	public Substring(String sub, String line) {
+	public Substring(String sub, Line line) {
 		this.sub = sub;
-		lines = new ArrayList<String>();
+		lines = new ArrayList<Line>();
 		lines.add(line);
 	}
 	
-	public void add(String line) {
+	public void add(Line line) {
 		lines.add(line);
 	}
 	
@@ -90,5 +108,16 @@ class Substring implements Comparable{
 		Substring other = (Substring) obj;
 		
 		return other.lines.size() - this.lines.size();
+	}
+}
+
+class Line {
+	public String lineNumber;
+	public String word;
+	public int offset;
+	public Line(String lineNumber, String word, int offset) {
+		this.lineNumber = lineNumber;
+		this.word = word;
+		this.offset = offset;
 	}
 }
