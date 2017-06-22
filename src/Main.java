@@ -1,19 +1,26 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Formatter;
-import java.util.Locale;
 import java.util.Scanner;
 
 public class Main {
 	private static final int DEFAULT_SUBSTRING_LENGTH = 4;
 	private static int SUBSTRING_LENGTH;
+	
+	private static boolean UNIQUE_WORDS;
+	
 	public static void main(String[] args) {
 
 		if(args.length > 0) {
 			SUBSTRING_LENGTH = Integer.parseInt(args[0]);
 		} else {
 			SUBSTRING_LENGTH = DEFAULT_SUBSTRING_LENGTH;
+		}
+		
+		if(args.length > 1 && (args[1].equals("u") || args[1].equals("unique"))) {
+			UNIQUE_WORDS = true;
+		} else {
+			UNIQUE_WORDS = false;
 		}
 		
 		Scanner sc = new Scanner(System.in);
@@ -39,7 +46,7 @@ public class Main {
 					if(!set.contains(substring)) {
 						set.add(substring);
 					} else {
-						set.get(set.indexOf(substring)).add(substring.lines.get(0));
+						set.get(set.indexOf(substring)).add(substring.lines.get(0), UNIQUE_WORDS);
 					}
 				}
 			}
@@ -85,8 +92,21 @@ class Substring implements Comparable{
 		lines.add(line);
 	}
 	
-	public void add(Line line) {
-		lines.add(line);
+	public void add(Line line, boolean uniqueWords) {
+		if(uniqueWords) {
+			boolean exists = false;
+			for(Line l : lines) {
+				if(l.word.equals(line.word)) {
+					exists = true;
+					break;
+				}
+			}
+			if(!exists) {
+				lines.add(line);
+			}
+		} else {
+			lines.add(line);
+		}
 	}
 	
 	@Override
