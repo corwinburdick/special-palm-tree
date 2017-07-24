@@ -179,23 +179,23 @@ class RegexMatcher implements Searcher {
 
 		Collections.sort(set);
 		
-		// print total occurences
-		int totalOccurences = 0;
+		// print total occurrences
+		int totalOccurrences = 0;
 		int longestMatchLength = 0;
 		int uniqueWordForms = set.size();
 		for(Substring s : set) {
-			totalOccurences += s.lines.size();
+			totalOccurrences += s.lines.size();
 			if (s.sub.length() > longestMatchLength) {
 				longestMatchLength = s.sub.length();
 			}
 		}
-		System.out.println(regex.toString() + " (" + totalOccurences + " occurences, " + uniqueWordForms + " unique word forms)");
+		System.out.println(regex.toString() + " (" + totalOccurrences + " occurrences, " + uniqueWordForms + " unique word forms)");
 		System.out.println();
 
 		for(Substring s : set) {
 			char[] spaces = new char[longestMatchLength - s.sub.length() + 5]; // 5 for padding
 			Arrays.fill(spaces, ' ');				
-			System.out.println(s.sub + new String(spaces) + "(" + s.lines.size() + " occurences)");
+			System.out.println(s.sub + new String(spaces) + "(" + s.lines.size() + " occurrences)");
 		
 			if (this.hideRepeatedWords == false) {
 				System.out.println();
@@ -212,9 +212,9 @@ class RegexMatcher implements Searcher {
 				
 				for(Line line : s.lines) {
 					// pad with spaces
-					char[] perOccurenceSpaces = new char[maxLineLength + maxOffset - line.lineNumber.length() - line.offset];
-					Arrays.fill(perOccurenceSpaces, ' ');				
-					System.out.println("<" + line.lineNumber + "> " + new String(perOccurenceSpaces) + line.word);
+					char[] perOccurrenceSpaces = new char[maxLineLength + maxOffset - line.lineNumber.length() - line.offset];
+					Arrays.fill(perOccurrenceSpaces, ' ');				
+					System.out.println("<" + line.lineNumber + "> " + new String(perOccurrenceSpaces) + line.word);
 				}
 				System.out.println();
 			}
@@ -225,7 +225,7 @@ class RegexMatcher implements Searcher {
 
 }
 
-class Substring implements Comparable{
+class Substring implements Comparable<Substring>{
 	public String sub;
 	public ArrayList<Line> lines;
 	
@@ -267,9 +267,7 @@ class Substring implements Comparable{
 	}
 	
 	@Override
-	public int compareTo(Object obj) {
-		Substring other = (Substring) obj;
-		
+	public int compareTo(Substring other) {
 		return other.lines.size() - this.lines.size();
 	}
 }
