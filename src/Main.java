@@ -2,27 +2,69 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Scanner;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 public class Main {
-	private static final int DEFAULT_SUBSTRING_LENGTH = 4;
-	private static int SUBSTRING_LENGTH;
-	
-	private static boolean UNIQUE_WORDS;
 	
 	public static void main(String[] args) {
+		Main.parseInputArguments(args);
+	}
 
+	public static void parseInputArguments(String[] args) {
+
+		if(args.length < 1) {
+			return;
+		}
+
+		String programToRun = args[0];
+		String[] programSpecificArgs = Arrays.copyOfRange(args, 1, args.length);
+		Searcher searcher;
+		switch (programToRun) {
+			case "match-length":
+				searcher = new WorldLengthSearcher(programSpecificArgs);
+				break;
+			case "match-regex":
+				searcher = new RegexMatcher(programSpecificArgs);
+
+				break;
+			default: 
+				String errorMessage = "You wrote a command that doesn't match our current list of algorithms. Silly Bobby...";
+				System.out.println(errorMessage);
+				return;
+		}
+		searcher.start();
+		
+	}
+}
+
+interface Searcher {
+	public void start();
+}
+
+class WorldLengthSearcher implements Searcher {
+
+	private final int DEFAULT_SUBSTRING_LENGTH = 4;
+	private int minSubstringLength;
+	
+	private boolean requiresUniqueWords;
+
+	public WorldLengthSearcher(String[] args) {
 		if(args.length > 0) {
-			SUBSTRING_LENGTH = Integer.parseInt(args[0]);
+			this.minSubstringLength = Integer.parseInt(args[0]);
 		} else {
-			SUBSTRING_LENGTH = DEFAULT_SUBSTRING_LENGTH;
+			this.minSubstringLength = DEFAULT_SUBSTRING_LENGTH;
 		}
 		
 		if(args.length > 1 && (args[1].equals("u") || args[1].equals("unique"))) {
-			UNIQUE_WORDS = true;
+			this.requiresUniqueWords = true;
 		} else {
-			UNIQUE_WORDS = false;
+			this.requiresUniqueWords = false;
 		}
-		
+	}
+
+	public void start() {
+
 		Scanner sc = new Scanner(System.in);
 				
 		ArrayList<Substring> set = new ArrayList<Substring>();
@@ -38,15 +80,15 @@ public class Main {
 			String lineNumber = line[1];
 			String[] words = line[2].split("\\.");
 			for(String word : words) {
-				if(word.length() < SUBSTRING_LENGTH) {
+				if(word.length() < this.minSubstringLength) {
 					continue;
 				}
-				for(int i = 0; i < word.length()-SUBSTRING_LENGTH-1; i++) {
-					Substring substring = new Substring(word.substring(i, i+SUBSTRING_LENGTH), new Line(lineNumber, word, i));
+				for(int i = 0; i < word.length()-this.minSubstringLength-1; i++) {
+					Substring substring = new Substring(word.substring(i, i+this.minSubstringLength), new Line(lineNumber, word, i));
 					if(!set.contains(substring)) {
 						set.add(substring);
 					} else {
-						set.get(set.indexOf(substring)).add(substring.lines.get(0), UNIQUE_WORDS);
+						set.get(set.indexOf(substring)).add(substring.lines.get(0), this.requiresUniqueWords);
 					}
 				}
 			}
@@ -79,7 +121,108 @@ public class Main {
 			}
 			System.out.println();
 		}
+
 	}
+
+}
+
+class RegexMatcher implements Searcher {
+
+	private Pattern regex;
+	private boolean hideRepeatedWords;
+
+	public RegexMatcher(String[] args) {
+		if(args.length > 0) {
+			this.regex = Pattern.compile(args[0]);
+		} else {
+			System.out.println("The whole point of this is that you give me a regex! Silly bobby...");
+		}
+		
+		if(args.length > 1 && (args[1].equals("h") || args[1].equals("hide-repeats"))) {
+			this.hideRepeatedWords = true;
+		} else {
+			this.hideRepeatedWords = false;
+		}
+	}
+
+	public void start() {
+
+		Scanner sc = new Scanner(System.in);
+				
+		ArrayList<Substring> set = new ArrayList<Substring>();
+		
+		while(sc.hasNextLine()) {
+			String input = sc.nextLine();
+			if(input == null || input.isEmpty()) {
+				continue;
+			}
+			
+			String[] line = input.split("\\<|\\>");
+			
+			String lineNumber = line[1];
+			String[] words = line[2].split("\\.");
+			for(String word : words) {
+
+				Matcher matcher = regex.matcher(word);
+				if(!matcher.find()) { // if there are no matches in the string
+					continue;
+				}								
+
+				Substring substring = new Substring(word, new Line(lineNumber, word, -1)); // using -1 for "not using offset"
+				if(!set.contains(substring)) {
+					set.add(substring);
+				} else {
+					set.get(set.indexOf(substring)).add(substring.lines.get(0), false);
+				}
+			}
+		}
+
+		Collections.sort(set);
+		
+		// print total occurences
+		int totalOccurences = 0;
+		int longestMatchLength = 0;
+		int uniqueWordForms = set.size();
+		for(Substring s : set) {
+			totalOccurences += s.lines.size();
+			if (s.sub.length() > longestMatchLength) {
+				longestMatchLength = s.sub.length();
+			}
+		}
+		System.out.println(regex.toString() + " (" + totalOccurences + " occurences, " + uniqueWordForms + " unique word forms)");
+		System.out.println();
+
+		for(Substring s : set) {
+			char[] spaces = new char[longestMatchLength - s.sub.length() + 5]; // 5 for padding
+			Arrays.fill(spaces, ' ');				
+			System.out.println(s.sub + new String(spaces) + "(" + s.lines.size() + " occurences)");
+		
+			if (this.hideRepeatedWords == false) {
+				System.out.println();
+				int maxOffset = 0;
+				int maxLineLength = 0;
+				for(Line line : s.lines) {
+					if(line.offset > maxOffset) {
+						maxOffset = line.offset;
+					}
+					if(line.lineNumber.length() > maxLineLength) {
+						maxLineLength = line.lineNumber.length();
+					}
+				}
+				
+				for(Line line : s.lines) {
+					// pad with spaces
+					char[] perOccurenceSpaces = new char[maxLineLength + maxOffset - line.lineNumber.length() - line.offset];
+					Arrays.fill(perOccurenceSpaces, ' ');				
+					System.out.println("<" + line.lineNumber + "> " + new String(perOccurenceSpaces) + line.word);
+				}
+				System.out.println();
+			}
+			
+		}
+
+	}
+
 }
 
 class Substring implements Comparable{
