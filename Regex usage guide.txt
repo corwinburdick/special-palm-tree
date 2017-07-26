@@ -32,3 +32,5 @@ Possibly useful examples:
 I'm not sure exactly how you're running the program, but here's an example command I type into the command prompt on Windows:
 
 java Main regex-fullstring "\.\L{3}\." h g <"1.txt" >"output.txt"
+
+The "g" option groups the output by the matched string, rather than the surrounding words. This is useful when doing broader searches (e.g. bigrams) instead of more specific searches (e.g. "4o")
