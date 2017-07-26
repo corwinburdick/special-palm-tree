@@ -1,0 +1,34 @@
+#Note: Make sure to surround regexes with double quotes, just to be sure. ie: "[^abc]". 
+
+#Note:
+"[^\.]" matches any single character except a period. This is how I'm currently defining a letter. We could later exclude other punctuation marks like so: "[^\.,-=]". As shorthand, I've added in "\L", which is the equivalent of a letter
+
+Possibly useful examples:
+
+.				Match all single characters including punctuation
+[^\.]			Match all letters (basically generates a frequency analysis)
+\L				- same thing
+
+\.\L+\.			Match all words
+\.\L{3}\.		Match all words of exactly length 3
+\.\L{1,3}\.		Match all words of length up to and including 3
+\.\L{4,}\.		Match all words of length 4 or more
+
+
+\.\L{2}			Match all 2-character prefixes (e.g. ".4o")
+\L{2}\.			Match all 2-character suffixes (e.g. "89.")
+
+\L{2}			Match all bigrams
+\L{3}			Match all trigrams
+(\L)\1+			Match all repeated characters (e.g. "cc")
+\.(\L+)\.\1		Match all repeated words (e.g. ".oe.oe.")
+
+\.4[^o]\L*\.	Match all words that start with "4" but don't start with "4o"
+
+\.(\L)\L*\1\.		Match all words that start and end with the same letter
+\.(\L{2})\L*\1\.	Match all words that start and end with the same 2 letters (e.g. ".abzab.")
+\.(\L)(\L)\L*\2\1\.	Match all words that start with a bigram and end with the same bigram reversed (e.g. ".abzba.")
+
+I'm not sure exactly how you're running the program, but here's an example command I type into the command prompt on Windows:
+
+java Main regex-fullstring "\.\L{3}\." h g <"1.txt" >"output.txt"
