@@ -59,62 +59,68 @@ public class RegexMatcherFullString implements Searcher {
 		Matcher matcher = regex.matcher(fullTextString);
 		if(matcher.find()) {
 			do {
-				//will need to change these lines if other delimiters are used (i.e ',')
-				int startIndex = fullTextString.lastIndexOf(".", matcher.start());
-				if(startIndex >= fullTextString.length()) {
-					continue;
-				}
-				if(fullTextString.charAt(matcher.start()) == '.') {
-					startIndex -= 1;
-				}
-				if(startIndex < 0) {
-					startIndex = 0;
-				} else if(startIndex >= fullTextString.length()) {
-					startIndex = fullTextString.length() - 1;
-				}
-				int endIndex = fullTextString.indexOf(".", matcher.end());
-				if(matcher.end() > 0 && fullTextString.charAt(matcher.end() - 1) == '.') {
-					endIndex += 1;
-				}
-				if(endIndex >= fullTextString.length() || endIndex < 0) {
-					endIndex = fullTextString.length()-1;
-				} else if(endIndex == 0) {
-					endIndex = fullTextString.length()-1;
-				}
-				
-				int offset = matcher.start() - startIndex;
-				String lineNumber = getLineNumber(lineNumberIndices, lineNumbers, startIndex);
-				
-//				if(Math.max(startIndex+1, endIndex) >= fullTextString.length() - 1 || Math.min(startIndex + 1, endIndex) <= 1)
-//					System.err.println(startIndex + "\t" + endIndex);
-				
-				String matchedString = fullTextString.substring(startIndex+1, endIndex);
-				
+				String lineNumber = getLineNumber(lineNumberIndices, lineNumbers, matcher.start());
+				String matchedString = null;
 				Substring substring = null;
+				
 				if(groupByMatchedSequence) {
-					substring = new Substring(matcher.group(), new Line(lineNumber, matchedString, offset));					
+					matchedString = matcher.group();
+					substring = new Substring(matcher.group(), new Line(lineNumber, matchedString, 0));					
 				} else {
+					//will need to change these lines if other delimiters are used (i.e ',')
+					
+					int startIndex = fullTextString.lastIndexOf(".", matcher.start()) + 1;
+					if(startIndex >= fullTextString.length()) {
+						continue;
+					}
+					if(fullTextString.charAt(matcher.start()) == '.') {
+						startIndex -= 1;
+					}
+					if(startIndex < 0) {
+						startIndex = 0;
+					} else if(startIndex >= fullTextString.length()) {
+						startIndex = fullTextString.length() - 1;
+					}
+					
+					int endIndex = fullTextString.indexOf(".", matcher.end());
+					if(matcher.end() > 0 && fullTextString.charAt(matcher.end() - 1) == '.') {
+						endIndex += 1;
+					}
+					if(endIndex >= fullTextString.length() || endIndex < 0) {
+						endIndex = fullTextString.length()-1;
+					} else if(endIndex == 0) {
+						endIndex = fullTextString.length()-1;
+					}
+					
+					int offset = matcher.start() - startIndex;
+						
+	//				if(Math.max(startIndex+1, endIndex) >= fullTextString.length() - 1 || Math.min(startIndex + 1, endIndex) <= 1)
+	//					System.err.println(startIndex + "\t" + endIndex);
+						
+					matchedString = fullTextString.substring(startIndex, endIndex);	
 					substring = new Substring(matchedString, new Line(lineNumber, matchedString, offset));
 				}
+				
 				if(!set.contains(substring)) {
 					set.add(substring);
 				} else {
 					set.get(set.indexOf(substring)).add(substring.lines.get(0), false);
 				}
-			} while(matcher.end() < fullTextString.length() && matcher.find(matcher.end()+1));
+			} while(matcher.start() < fullTextString.length() && matcher.find(matcher.start()+1));
 		}
 		
 		Collections.sort(set);
-		
-		int totalOccurrences = 0;
-		int longestMatchLength = 0;
 		int uniqueWordForms = set.size();
+		int totalOccurrences = 0;
+		int longestMatchLength = 0; //used for formatting
+		
 		for(Substring s : set) {
 			totalOccurrences += s.lines.size();
 			if(s.sub.length() > longestMatchLength) {
 				longestMatchLength = s.sub.length();
 			}
 		}
+		
 		if(groupByMatchedSequence) {
 			System.out.println(regex.toString() + " (" + uniqueWordForms + " unique matches, " + totalOccurrences + " total matches)");
 		} else {
@@ -131,7 +137,7 @@ public class RegexMatcherFullString implements Searcher {
 				System.out.println(s.sub + " (" + s.lines.size() + " occurrences)");
 			}
 			
-			if(!this.hideRepeatedWords) {
+			if(!hideRepeatedWords) {
 				System.out.println();
 				int maxOffset = 0;
 				int maxLineLength = 0;

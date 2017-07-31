@@ -7,14 +7,14 @@ import java.util.Scanner;
 import structures.Line;
 import structures.Substring;
 
-public class WorldLengthSearcher implements Searcher {
+public class WordLengthSearcher implements Searcher {
 
 	private final int DEFAULT_SUBSTRING_LENGTH = 4;
 	private int minSubstringLength;
 	
 	private boolean requiresUniqueWords;
 
-	public WorldLengthSearcher(String[] args) {
+	public WordLengthSearcher(String[] args) {
 		if(args.length > 0) {
 			this.minSubstringLength = Integer.parseInt(args[0]);
 		} else {

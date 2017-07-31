@@ -1,3 +1,8 @@
+#project-specific
+in/
+out/
+
+
 
 .metadata
 bin/

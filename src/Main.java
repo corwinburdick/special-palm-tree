@@ -18,7 +18,7 @@ public class Main {
 		Searcher searcher;
 		switch (programToRun) {
 			case "match-length":
-				searcher = new WorldLengthSearcher(programSpecificArgs);
+				searcher = new WordLengthSearcher(programSpecificArgs);
 				break;
 			case "match-regex":
 				searcher = new RegexMatcher(programSpecificArgs);
